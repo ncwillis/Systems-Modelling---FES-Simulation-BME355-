@@ -3,9 +3,6 @@ import matplotlib.pyplot as plt
 import math
 from scipy.integrate import solve_ivp
 import sim_regressions as reg
-from sklearn.linear_model import Ridge
-from scipy.special import expit
-import collections
 import external_state as ext
 
 
@@ -13,9 +10,7 @@ def get_state(t, x):
     U_stim = np.ones(10)
     U_stim = 400 * U_stim
     #u = get_excitation(U_stim, 30)
-    #u = np.random.normal(size=100)
-    #u=0.5
-    #T_grav = get_T_grav()
+
     u = reg.get_activation_regression()
     T_act = 0.01 #in seconds
     T_deact = 0.04 #in seconds
