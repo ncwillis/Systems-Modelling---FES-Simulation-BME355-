@@ -6,6 +6,7 @@ import sim_regressions as reg
 from sklearn.linear_model import Ridge
 from scipy.special import expit
 import collections
+import external_state as ext
 
 
 def get_state(t, x):
@@ -21,16 +22,15 @@ def get_state(t, x):
     B = 0.82 #viscosity param
     J = 0.0197 #inertia of food around ankle (kg m^2)
     d = 0.03 #d, the moment arm around ankle joint
-    x_ext = [1,1,1,1] #TODO get x_ext, should be a vector of 4 values?
     a = [2.10, -0.08, -7.97, 0.19, -1.79]
     T_ela = np.exp(a[0]+(a[1]*x[1])) - np.exp(a[2]+a[3]*x[1]) + a[4]
+    x_ext = [ext.x_ext_1.eval(t), ext.x_ext_2.eval(t), ext.x_ext_3.eval(t), ext.x_ext_4.eval(t)]
 
-    #x1_dot = (u[math.ceil(t)] - x[0]) * ((x[1]/T_act)-((1-u[math.ceil(t)])/T_deact))
     x1_dot = (u.eval(t) - x[0]) * ((u.eval(t) / T_act) - ((1 - u.eval(t)) / T_deact))
     x2_dot = x[2]
-    #x3_dot = (1/J) * F_m(x, x_ext) * d + T_grav(x[1]) + T_acc(x_ext[0], x_ext[1], x[1]) + T_ela[x[1]] + B * (x_ext[3] - x[2])
+    x3_dot = (1/J) * F_m(x, x_ext) * d + T_grav(x[1]) + T_acc(x, x_ext) + T_ela + B * (x_ext[3] - x[2])
 
-    return [x1_dot, x2_dot, 1]
+    return [x1_dot, x2_dot, x3_dot]
 
 
 def F_m(x, x_ext):
@@ -47,7 +47,7 @@ def T_grav(x_2):
     return - (m_F * c_F * math.cos(x_2) * g)
 
 
-def T_acc(x, x_ext_1, x_ext_2):
+def T_acc(x, x_ext):
     m_F = 1.025 #in kg
     c_F = 11.45 #in cm
     return - m_F * c_F *(x_ext[0] * math.sin(x[1]) - x_ext[1]* math.cos(x[1]) )
@@ -84,7 +84,16 @@ sol = solve_ivp(get_state, [0, 0.4], [0, -15, -1.5], rtol=1e-5, atol=1e-8)
 time = sol.t
 data1 = sol.y[0]
 data2 = sol.y[1]
+data3 = sol.y[2]
+plt.figure()
+plt.subplot(3, 1, 1)
 plt.plot(time, data1)
-plt.show()
+plt.ylabel('Activation')
+plt.subplot(3, 1, 2)
 plt.plot(time, data2)
+plt.ylabel('Ankle Angle')
+plt.subplot(3,1,3)
+plt.plot(time, data3)
+plt.ylabel('Ankle Angular Velocity')
+plt.xlabel('%Gait Cycle')
 plt.show()
