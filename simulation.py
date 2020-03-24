@@ -7,11 +7,24 @@ import external_state as ext
 
 
 def get_state(t, x):
-    U_stim = np.ones(10)
-    U_stim = 400 * U_stim
-    #u = get_excitation(U_stim, 30)
 
-    u = reg.get_activation_regression()
+    #get input u
+    time_exc = np.arange(0, 0.4 + 0.01, 0.01)
+    #print(time_exc)
+    U_stim = np.full((1,len(time_exc)), 37)
+    exc = get_excitation(U_stim, 35)
+    u = exc[0]
+    #u = reg.get_activation_regression()
+
+    time_index = 0
+    temp = np.abs(time_exc[0] - t)
+    for i in range(len(time_exc)):
+        if np.abs(time_exc[i] - t) < temp:
+            time_index = i
+        else:
+            temp = np.abs(time_exc[i] - t)
+
+    #Variables
     T_act = 0.01 #in seconds
     T_deact = 0.04 #in seconds
     B = 0.82 #viscosity param
@@ -21,7 +34,9 @@ def get_state(t, x):
     T_ela = np.exp(a[0]+(a[1]*x[1])) - np.exp(a[2]+a[3]*x[1]) + a[4]
     x_ext = [ext.x_ext_1.eval(t), ext.x_ext_2.eval(t), ext.x_ext_3.eval(t), ext.x_ext_4.eval(t)]
 
-    x1_dot = (u.eval(t) - x[0]) * ((u.eval(t) / T_act) - ((1 - u.eval(t)) / T_deact))
+    #Get trajectory
+    #x1_dot = (u.eval(t) - x[0]) * ((u.eval(t) / T_act) - ((1 - u.eval(t)) / T_deact))
+    x1_dot = (u[time_index] - x[0]) * ((u[time_index] / T_act) - ((1 - u[time_index]) / T_deact))
     x2_dot = x[2]
     x3_dot = (1/J) * F_m(x, x_ext) * d + T_grav(x[1]) + T_acc(x, x_ext) + T_ela + B * (x_ext[3] - x[2])
 
@@ -50,7 +65,7 @@ def T_acc(x, x_ext):
 
 def get_excitation(U_stim, freq_stim):
     U_tr = 22   #TODO: get threshold stimulation to elicit muscle response in mA
-    U_sat = 46 #TODO: get stimulation value that elicits a full muscle response in mA (50 mA is on high end of range)
+    U_sat = 55 #TODO: get stimulation value that elicits a full muscle response in mA (50 mA is on high end of range)
     fmax = 150 #maximum force produced by the tibialis
     fCF = 10    #TODO: force produced by tibialis at critical fusion frequency
     freq_CF = 5    #TODO: get critical fusion frequency (frequency reguired to elicit a sustained contraction)
@@ -60,21 +75,32 @@ def get_excitation(U_stim, freq_stim):
 
     excitation = []
     for i in range(len(U_stim)):
-        excitation.append(((U_stim[i]-U_tr)/(U_sat-U_tr))*(((k-(fmax/fCF))/(1+(np.exp((freq_stim-f_0)/R))))+(fmax/fCF)))
+        #print(U_stim[0][i])
+        if U_stim[0][i] < U_tr:
+            excitation.append(0)
+        elif U_stim[0][i] > U_sat:
+            excitation.append(1)
+        else:
+            excitation.append(((U_stim[i]-U_tr)/(U_sat-U_tr))*(((k-(fmax/fCF))/(1+(np.exp((freq_stim-f_0)/R))))+(fmax/fCF)))
+
     return excitation
 
-U_sat = 46
-U_stim = []
-activation = reg.get_activation_regression()
-time = np.arange(0, 0.4, 0.001)
-for i in range(len(time)):
-    U_stim.append(U_sat*activation.eval(time[i])[0])
-print(U_stim)
-exc = get_excitation(U_stim, 40)
-print(exc)
 
+# activation = reg.get_activation_regression()
+# time = np.arange(0, 0.4, 0.001)
+# for i in range(len(time)):
+#     U_stim.append(U_sat*activation.eval(time[i])[0])
+# print(U_stim)
+# exc = get_excitation(U_stim, 40)
+# print(exc)
 
-#sol = solve_ivp(get_state(), [0, 0.4], [0, -15, -1.5], args=arg)
+time_exc = np.arange(0, 0.4 + 0.01, 0.01)
+U_stim = np.full((1,len(time_exc)), 35)
+exc = get_excitation(U_stim, 35)
+# print(exc[0])
+# plt.plot(time_exc, exc[0])
+# plt.show()
+
 sol = solve_ivp(get_state, [0, 0.4], [0, -15, -1.5], rtol=1e-5, atol=1e-8)
 time = sol.t
 data1 = sol.y[0]
