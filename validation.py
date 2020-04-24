@@ -5,6 +5,10 @@ from sklearn.metrics import mean_squared_error
 import csv
 
 def parse_lit_data(file_name):
+    """
+    :param file_name: Name of text file for given data
+    :return: parsed data (time and dependent var.)
+    """
     data = []
     with open(file_name) as csv_file:
         csv_read = csv.reader(csv_file, delimiter=',')
@@ -17,6 +21,13 @@ def parse_lit_data(file_name):
     return data_time, data_vals
 
 def calculate_MSE(data_time, data_vals, sim_index, trunc):
+    """
+    :param data_time: Independent data
+    :param data_vals: Dependent variable data
+    :param sim_index: 0 for activation, 1 for ankle angle, 2 for ankle angular velocity
+    :param trunc: Boolean - truncates first 0.1s of trajectory
+    :return: noramlized RMSE between literature and calculated trajectories
+    """
     time = sim_test.t
     MSE = []
     for i in range(len(time)):
@@ -37,6 +48,9 @@ def calculate_MSE(data_time, data_vals, sim_index, trunc):
     return MSE_val
 
 def plot_validation():
+    """
+    void function to plot validation results
+    """
     plt.subplot(2,2,1)
     plt.plot(t_exc, exc_test, drawstyle="steps")
     plt.plot(test_exc_time, test_exc_vals, drawstyle="steps")
@@ -69,6 +83,9 @@ def plot_validation():
     print("NRMSE Angular Velocity = " + str(MSE_angular_velocity))
 
 def plot_validation_truncated():
+    """
+    void function to plot truncated validation results
+    """
     plt.subplot(2,2,1)
     plt.plot(t_exc[10:], exc_test[10:], drawstyle="steps")
     plt.plot(test_exc_time[10:], test_exc_vals[10:], drawstyle="steps")
