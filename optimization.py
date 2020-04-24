@@ -4,104 +4,116 @@ import simulation as sim
 import sim_regressions as reg
 from shapely.geometry import Polygon
 
-# Get activation time integrals
-t_unique = sim.sim_unique.t
-act_unique = sim.sim_unique.y[0]
+def get_ATI(simulation):
+    """
+    :param simulation: Simulation results (array) for given signal shape
+    :return: Activation-time integral
+    """
+    time = simulation.t
+    activation = simulation.y[0]
+    ati = np.trapz(activation, time)
+    return ati
 
-t_rect = sim.sim_rectangular.t
-act_rect = sim.sim_rectangular.y[0]
+def plot_ati_results():
+    """
+    void function to plot ATI results
+    """
+    ati = [ati_unique, ati_rect, ati_triang, ati_trap]
+    bars = ('Unique', 'Rectangular', 'Triangular', 'Trapezoidal')
+    y_pos = np.arange(len(bars))
+    plt.barh(y_pos, ati, color = 'teal', height=0.4)
+    plt.text(ati_unique, 0, str(np.round(ati_unique, 2)))
+    plt.text(ati_rect, 1, str(np.round(ati_rect, 2)))
+    plt.text(ati_triang, 2, str(np.round(ati_triang, 2)))
+    plt.text(ati_trap, 3, str(np.round(ati_trap, 2)))
+    plt.xlabel('Activation-Time Integral')
+    plt.yticks(y_pos, bars)
+    plt.show()
 
-t_triang = sim.sim_triangular.t
-act_triang = sim.sim_triangular.y[0]
+def get_area_angles(simulation):
+    """
+    :param simulation: Simulation results (array) for given signal shape
+    :return: Area between simulated and natural ankle angle trajectories
+    """
+    time = simulation.t
+    angles = simulation.y[1]
+    angle_exp = reg.get_angle_regression()
+    polygon_pts = []
+    angle_natural = []
+    for i in range(len(time)):
+        angle_natural.append(angle_exp.eval(time[i]))
+        polygon_pts.append([time[i], angles[i]])
+        polygon_pts.append([time[i], angle_natural[i][0]])
+    polygon = Polygon(polygon_pts)
+    area = polygon.area
+    return area
 
-t_trap = sim.sim_trapezoidal.t
-act_trap = sim.sim_trapezoidal.y[0]
+def get_area_angular_velocity(simulation):
+    """
+    :param simulation: Simulation results (array) for given signal shape
+    :return: Area between simulated and natural angular velocity trajectories
+    """
+    time = simulation.t
+    angular_velocity = simulation.y[2]
+    angularvel_exp = reg.get_angular_velocity_regression()
+    polygon_pts = []
+    angularvel_natural = []
+    for i in range(len(time)):
+        angularvel_natural.append(angularvel_exp.eval(time[i]))
+        polygon_pts.append([time[i], angular_velocity[i]])
+        polygon_pts.append([time[i], angularvel_natural[i][0]])
+    polygon = Polygon(polygon_pts)
+    area = polygon.area
+    return area
 
-ati_unique = np.trapz(act_unique, t_unique)
-ati_rect = np.trapz(act_rect, t_rect)
-ati_triang = np.trapz(act_triang, t_triang)
-ati_trap = np.trapz(act_trap, t_trap)
+def cost_function(ati, angle_diff, velocity_diff):
+    """
+    :param ati: Activation time integral for given signal shape
+    :param angle_diff: Area between simulated and natural ankle angle trajectories for given signal shape
+    :param velocity_diff: Area between simulation and natural angular velocity trajectories for given signal shape
+    :return: Result of the cost function
+    """
+    angle_norm = np.max([area_angle_unique, area_angle_rect, area_angle_triang, area_angle_trap])
+    vel_norm = np.max([area_vel_unique, area_vel_rect, area_vel_triang, area_vel_trap])
+    act_norm = np.max([ati_unique, ati_rect, ati_triang, ati_trap])
+    c1 = 1
+    c2 = 0.5
+    c3 = 0.25
+    return c1 * (ati / act_norm) + c2 * (angle_diff / angle_norm) + c3 * (velocity_diff / vel_norm)
 
-# Plot activation results
-plt.plot(t_unique, act_unique)
-plt.plot(t_rect, act_rect)
-plt.plot(t_triang, act_triang)
-plt.plot(t_trap, act_trap)
-plt.title('Activation')
-plt.xlabel('Time (s)')
-plt.ylabel('Normalized Activation')
-plt.legend(['Unique', 'Rectangular', 'Triangular', 'Trapezoidal'])
-plt.show()
+def print_results():
+    """
+    void function to print activation time integral and cost function results
+    """
+    print("ATI Unique = " + str(ati_unique))
+    print("AIT Rectangular = " + str(ati_rect))
+    print("ATI Triangular = " + str(ati_triang))
+    print("ATI Trapezoidal = " + str(ati_trap))
+    print("Cost Function - Unique: " + str(cost_unique))
+    print("Cost Function - Rectangular: " + str(cost_rect))
+    print("Cost Function - Triangular: " + str(cost_triang))
+    print("Cost Function - Trapezoidal: " + str(cost_trap))
 
-print("ATI Unique = " + str(ati_unique))
-print("AIT Rectangular = " + str(ati_rect))
-print("ATI Triangular = " + str(ati_triang))
-print("ATI Trapezoidal = " + str(ati_trap))
+ati_unique = get_ATI(sim.sim_unique)
+ati_rect = get_ATI(sim.sim_rectangular)
+ati_triang = get_ATI(sim.sim_triangular)
+ati_trap = get_ATI(sim.sim_trapezoidal)
 
-# Plot ATI results
-ati = [ati_unique, ati_rect, ati_triang, ati_trap]
-bars = ('Unique', 'Rectangular', 'Triangular', 'Trapezoidal')
-y_pos = np.arange(len(bars))
-plt.barh(y_pos, ati, color = 'teal', height=0.4)
-plt.text(ati_unique, 0, str(np.round(ati_unique, 2)))
-plt.text(ati_rect, 1, str(np.round(ati_rect, 2)))
-plt.text(ati_triang, 2, str(np.round(ati_triang, 2)))
-plt.text(ati_trap, 3, str(np.round(ati_trap, 2)))
-plt.xlabel('Activation-Time Integral')
-plt.yticks(y_pos, bars)
-plt.show()
+area_angle_unique = get_area_angles(sim.sim_unique)
+area_angle_rect = get_area_angles(sim.sim_rectangular)
+area_angle_triang = get_area_angles(sim.sim_triangular)
+area_angle_trap = get_area_angles(sim.sim_trapezoidal)
 
-#Get area between expected and actual results (angle)
-angle = reg.get_angle_regression()
-angle_natural = []
-polygon_unique_pts = []
-angle_unique = sim.sim_unique.y[1]
-for i in range(len(t_unique)):
-    angle_natural.append(angle.eval(t_unique[i]))
-    polygon_unique_pts.append([t_unique[i], angle_unique[i]])
-    polygon_unique_pts.append([t_unique[i], angle_natural[i][0]])
+area_vel_unique = get_area_angular_velocity(sim.sim_unique)
+area_vel_rect = get_area_angular_velocity(sim.sim_rectangular)
+area_vel_triang = get_area_angular_velocity(sim.sim_triangular)
+area_vel_trap = get_area_angular_velocity(sim.sim_trapezoidal)
 
-polygon_unique = Polygon(polygon_unique_pts)
-area_unique = polygon_unique.area
+cost_unique = cost_function(ati_unique, area_angle_unique, area_vel_unique)
+cost_rect = cost_function(ati_rect, area_angle_rect, area_vel_rect)
+cost_triang = cost_function(ati_triang, area_angle_triang, area_vel_triang)
+cost_trap = cost_function(ati_trap, area_angle_trap, area_vel_trap)
 
-polygon_rect_pts = []
-angle_natural = []
-angle_rect = sim.sim_rectangular.y[1]
-for i in range(len(t_rect)):
-    angle_natural.append(angle.eval(t_rect[i]))
-    polygon_rect_pts.append([t_rect[i], angle_rect[i]])
-    polygon_rect_pts.append([t_rect[i], angle_natural[i][0]])
+print_results()
+plot_ati_results()
 
-polygon_rect = Polygon(polygon_rect_pts)
-area_rect = polygon_rect.area
-
-polygon_triang_pts = []
-angle_natural = []
-angle_triang = sim.sim_triangular.y[1]
-for i in range(len(t_triang)):
-    angle_natural.append(angle.eval(t_triang[i]))
-    polygon_triang_pts.append([t_triang[i], angle_triang[i]])
-    polygon_triang_pts.append([t_triang[i], angle_natural[i][0]])
-
-polygon_triang = Polygon(polygon_triang_pts)
-area_triang = polygon_triang.area
-
-polygon_trap_pts = []
-angle_natural = []
-angle_trap = sim.sim_trapezoidal.y[1]
-for i in range(len(t_trap)):
-    angle_natural.append(angle.eval(t_trap[i]))
-    polygon_trap_pts.append([t_trap[i], angle_trap[i]])
-    polygon_trap_pts.append([t_trap[i], angle_natural[i][0]])
-
-polygon_trap = Polygon(polygon_trap_pts)
-area_trap = polygon_trap.area
-
-print(area_unique)
-print(area_rect)
-print(area_triang)
-print(area_trap)
-
-# polygon_unique_pts = np.array(polygon_unique_pts)
-# plt.plot(polygon_unique_pts[:,0], polygon_unique_pts[:,1])
-# plt.show()
