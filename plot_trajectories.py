@@ -80,7 +80,7 @@ def plot_excitation_trajectories():
     plt.title('Excitation')
     plt.ylabel('Normalized Excitation')
     plt.xlabel('Time (s)')
-    plt.legend(['Unique', 'Rectangular', 'Triangular', 'Trapezoidal', 'None', 'Test'])
+    plt.legend(['Unique', 'Rectangular', 'Triangular', 'Trapezoidal'])
     plt.show()
 
 def get_sim_results():
@@ -91,9 +91,9 @@ def get_sim_results():
     sim_rectangular = sim.sim_rectangular
     sim_triangular = sim.sim_triangular
     sim_trapezoidal = sim.sim_trapezoidal
-    sim_zero = sim.sim_zero
-    sim_test = sim.sim_test
-    return sim_unique, sim_rectangular, sim_triangular, sim_trapezoidal, sim_zero, sim_test
+    # sim_zero = sim.sim_zero
+    # sim_test = sim.sim_test
+    return sim_unique, sim_rectangular, sim_triangular, sim_trapezoidal
 
 def get_natural_trajectories():
     """
@@ -147,20 +147,20 @@ def plot_ankle_posn_velocity():
     plt.ylabel('Angular Velocity (deg/s)')
     plt.show()
 
-pulse_times = process_pulse_trains(sim.pulse_times)
-pt_unique = process_pulse_trains(sim.pulse_train_unique)
-pt_rectangular = process_pulse_trains(sim.pulse_train_rectangular)
-pt_triangular = process_pulse_trains(sim.pulse_train_rectangular)
-pt_trapezoidal = process_pulse_trains(sim.pulse_train_trapezoidal)
-pt_zero = process_pulse_trains(sim.pulse_train_zero)
+if __name__ == "__main__":
+    pulse_times = process_pulse_trains(sim.pulse_times)
+    pt_unique = process_pulse_trains(sim.pulse_train_unique)
+    pt_rectangular = process_pulse_trains(sim.pulse_train_rectangular)
+    pt_triangular = process_pulse_trains(sim.pulse_train_rectangular)
+    pt_trapezoidal = process_pulse_trains(sim.pulse_train_trapezoidal)
 
-plot_FES_pulsetrains()
+    plot_FES_pulsetrains()
 
-t_exc, exc_tri, exc_rec, exc_uniq, exc_trap = get_excitation_results()
-plot_excitation_trajectories()
+    t_exc, exc_tri, exc_rec, exc_uniq, exc_trap = get_excitation_results()
+    plot_excitation_trajectories()
 
-sim_unique, sim_rectangular, sim_triangular, sim_trapezoidal, sim_zero, sim_test = get_sim_results()
-t_expected, exp_angle_traj, exp_angular_vel_traj = get_natural_trajectories()
+    sim_unique, sim_rectangular, sim_triangular, sim_trapezoidal = get_sim_results()
+    t_expected, exp_angle_traj, exp_angular_vel_traj = get_natural_trajectories()
 
-plot_activation()
-plot_ankle_posn_velocity()
+    plot_activation()
+    plot_ankle_posn_velocity()

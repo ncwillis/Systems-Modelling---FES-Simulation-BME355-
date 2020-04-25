@@ -1,5 +1,3 @@
-import numpy as np
-
 def lookup_table(angle, input):
 
     table = {-16: [[0.107, 100], [0.28, 150], [0.45, 200], [0.515, 250], [0.548, 300], [0.44, 350], [0.37, 400]],
@@ -49,11 +47,3 @@ def lookup_table(angle, input):
                 found_pulsewidth = pair[1]
 
         return found_pulsewidth
-
-
-# testing values
-# pulse = 150
-# angle = np.round(-14.91881168803702)
-# rms = 0.08148234782061098
-#
-# print(lookup_table(angle, rms))

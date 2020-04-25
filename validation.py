@@ -118,25 +118,27 @@ def plot_validation_truncated():
     print("Truncated NRMSE Angle = " + str(MSE_angle_trunc))
     print("Truncated NRMSE Angular Velocity = " + str(MSE_angular_velocity_trunc))
 
-t_exc = np.linspace(0,0.4,40)
 
-exc_test = np.zeros(len(t_exc))
-for i in range(len(t_exc)):
-    exc_test[i] = sim.excitation_test.eval(t_exc[i])
+if __name__ == "__main__":
+    t_exc = np.linspace(0,0.4,40)
 
-sim_test = sim.sim_test
+    exc_test = np.zeros(len(t_exc))
+    for i in range(len(t_exc)):
+        exc_test[i] = sim.excitation_test.eval(t_exc[i])
 
-paper_angle_time, paper_angle_vals = parse_lit_data('lit_ankle_angle.txt')
-paper_activation_time, paper_activation_vals = parse_lit_data('lit_activation.txt')
-paper_angularvel_time, paper_angularvel_vals = parse_lit_data('lit_ankle_angularvelocity.txt')
-test_exc_time, test_exc_vals = parse_lit_data('lit_excitation.txt')
+    sim_test = sim.sim_test
 
-MSE_activation = calculate_MSE(paper_activation_time, paper_activation_vals, 0, False)
-MSE_angle = calculate_MSE(paper_angle_time, paper_angle_vals, 1, False)
-MSE_angular_velocity = calculate_MSE(paper_angularvel_time, paper_angularvel_vals, 2, False)
-MSE_act_trunc = calculate_MSE(paper_activation_time, paper_activation_vals, 0, True)
-MSE_angle_trunc = calculate_MSE(paper_angle_time, paper_angle_vals, 1, True)
-MSE_angular_velocity_trunc = calculate_MSE(paper_angularvel_time, paper_angularvel_vals, 2, True)
+    paper_angle_time, paper_angle_vals = parse_lit_data('lit_ankle_angle.txt')
+    paper_activation_time, paper_activation_vals = parse_lit_data('lit_activation.txt')
+    paper_angularvel_time, paper_angularvel_vals = parse_lit_data('lit_ankle_angularvelocity.txt')
+    test_exc_time, test_exc_vals = parse_lit_data('lit_excitation.txt')
 
-plot_validation()
-plot_validation_truncated()
+    MSE_activation = calculate_MSE(paper_activation_time, paper_activation_vals, 0, False)
+    MSE_angle = calculate_MSE(paper_angle_time, paper_angle_vals, 1, False)
+    MSE_angular_velocity = calculate_MSE(paper_angularvel_time, paper_angularvel_vals, 2, False)
+    MSE_act_trunc = calculate_MSE(paper_activation_time, paper_activation_vals, 0, True)
+    MSE_angle_trunc = calculate_MSE(paper_angle_time, paper_angle_vals, 1, True)
+    MSE_angular_velocity_trunc = calculate_MSE(paper_angularvel_time, paper_angularvel_vals, 2, True)
+
+    plot_validation()
+    plot_validation_truncated()
